@@ -1,0 +1,131 @@
+homeassistant:
+  # Name of the location where Home Assistant is running
+  name:                     Home
+  # Location required to calculate the time the sun rises and sets
+  latitude:                 !secret latitude
+  longitude:                !secret longitude
+  # Impacts weather/sunrise data (altitude above sea level in meters)
+  elevation:                78
+  # metric for Metric, imperial for Imperial
+  unit_system:              metric
+  # Pick yours from here:   http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  time_zone:                Australia/Brisbane
+
+# Enables the frontend
+frontend:
+
+# Enables configuration UI
+config:
+
+http:
+  # Uncomment this to add a password (recommended!)
+  api_password:             !secret http_password
+
+# Checks for available updates
+# Note:                     This component will send some information about your system to
+# the developers to assist with development of Home Assistant.
+# For more information, please see:
+# https://home-assistant.io/blog/2016/10/25/explaining-the-updater/
+updater:
+  # Optional, allows Home Assistant developers to focus on popular components.
+  include_used_components: true
+
+# Discover some devices automatically
+discovery:
+
+# Allows you to issue voice commands from the frontend in enabled browsers
+conversation:
+
+# Enables support for tracking state changes over time.
+history:
+
+# View all events in a logbook
+logbook:
+
+# Track the sun
+sun:
+
+sensor:
+    - platform:             wunderground
+      api_key:              !secret wunderground_api_key
+      monitored_conditions:
+          - feelslike_c
+          - precip_1d
+    - platform:             speedtest
+      hour:
+          - 12
+      monitored_conditions:
+          - ping
+          - download
+          - upload
+    - platform:             google_travel_time
+      api_key:              !secret google_api_key
+      name:                 Home to Jaimyn's
+      origin:               !secret home_address
+      destination:          !secret jaimyn_address
+      homebridge_hidden:    true
+
+
+# Text to speech
+tts:
+  platform:                 google
+
+group:                      !include groups.yaml
+automation:                 !include automations.yaml
+
+binary_sensor:
+# - platform:                 command_line
+#   scan_interval:            30
+#   name:                     Internet
+#   command:                  "/home/pi/.homeassistant/ping.sh "
+#   payload_on:               "Success"
+#   payload_off:              "Fail"
+#   homebridge_hidden:        true
+- platform: mqtt
+  name: "Window"
+  state_topic: "sensor/window"
+  payload_on: "open"
+  payload_off: "closed"
+  device_class: "opening"
+  homebridge_opening_type: window
+
+media_player:
+  - platform:               spotify
+    client_id:              !secret spotify_id
+    client_secret:          !secret spotify_secret
+
+device_tracker:
+  - platform:               nmap_tracker
+    hosts:                  10.0.0.1-254
+    consider_home:          180
+  - platform:               owntracks
+
+switch:
+  - platform:               wake_on_lan
+    mac_address:            !secret desktop_mac
+    name:                   Desktop
+    homebridge_name:        Desktop
+    host:                   10.0.0.29
+    turn_off:
+        service:            shell_command.turn_off_desktop
+  - platform:               mqtt
+    name:                   Heater
+    command_topic:          "cmnd/heater/power"
+    homebridge_hidden:      true
+
+shell_command:
+    turn_off_desktop:       'ssh homeassistant@10.0.0.29 sudo pm-suspend'
+
+mqtt:
+  broker:                   10.0.0.31
+  username:                 homeassistant
+  password:                 !secret mqtt_password
+
+scene:
+  - name:                   Good Night
+    entities:
+      group.bedroom:        off
+
+notify:
+    platform:               pushbullet
+    api_key:                !secret pushbullet_api

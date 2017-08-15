@@ -1,0 +1,185 @@
+    - id:            turn_heater_on_when_cold_temp_trigger
+      alias:         "Heater on when home and below 17º and window closed (temp trigger)"
+      trigger:
+          platform:  numeric_state
+          entity_id: sensor.pws_feelslike_c
+          below:     17
+      condition:
+          condition: and
+          conditions:
+            - condition: state
+              entity_id: device_tracker.homeassistant_df63b5d4cac144eba10c049bc1e5a10f
+              state:     home
+            - condition: state
+              entity_id: binary_sensor.window
+              state: 'off'
+      action:
+        - service:   homeassistant.turn_on
+          entity_id: switch.heater
+        - service: notify.notify
+          data:
+              title: Turning on Heater
+              message: It's getting cold, turning on your heater...
+
+    - id:            turn_heater_on_when_cold_location_trigger
+      alias:         "Heater on when home and below 17º and window closed (location trigger)"
+      trigger:
+          platform:  state
+          entity_id: device_tracker.homeassistant_df63b5d4cac144eba10c049bc1e5a10f
+          to:        home
+      condition:
+          condition: and
+          conditions:
+            - condition: numeric_state
+              entity_id: sensor.pws_feelslike_c
+              below:     17
+            - condition: state
+              entity_id: binary_sensor.window
+              state: 'off'
+      action:
+        - service:   homeassistant.turn_on
+          entity_id: switch.heater
+        - service: notify.notify
+          data:
+              title: Turning on Heater
+              message: Welcome home, turning on your heater...
+
+    - id:            turn_heater_on_when_cold_location_trigger_window_open
+      alias:         "Send message to close window (location trigger)"
+      trigger:
+          platform:  state
+          entity_id: device_tracker.homeassistant_df63b5d4cac144eba10c049bc1e5a10f
+          to:        home
+      condition:
+          condition: and
+          conditions:
+            - condition: numeric_state
+              entity_id: sensor.pws_feelslike_c
+              below:     17
+            - condition: state
+              entity_id: binary_sensor.window
+              state: 'on'
+      action:
+        - service: notify.notify
+          data:
+              title: Close Window for Heater
+              message: Welcome home, close your window to turn the heater on
+
+    - id:            turn_heater_on_when_cold_temp_trigger_window_open
+      alias:         "Send message to close window (temp trigger)"
+      trigger:
+          platform:  numeric_state
+          entity_id: sensor.pws_feelslike_c
+          below:     17
+      condition:
+          condition: and
+          conditions:
+            - condition: numeric_state
+              entity_id: sensor.pws_feelslike_c
+              below:     17
+            - condition: state
+              entity_id: binary_sensor.window
+              state: 'on'
+      action:
+        - service: notify.notify
+          data:
+              title: Close Window for Heater
+              message: Its getting cold, close your window to turn the heater on
+
+    - id: turn_heater_on_when_cold_window_trigger
+      alias: "Heater on when home and below 17º and window closed (window trigger)"
+      trigger:
+          platform: state
+          entity_id: binary_sensor.window
+          to: 'off'
+      condition:
+          condition: and
+          conditions:
+            - condition: numeric_state
+              entity_id: sensor.pws_feelslike_c
+              below:     17
+            - condition: state
+              entity_id: device_tracker.homeassistant_df63b5d4cac144eba10c049bc1e5a10f
+              state:     home
+      action:
+          - service:   homeassistant.turn_on
+            entity_id: switch.heater
+          - service: notify.notify
+            data:
+                title: Turning on Heater
+                message: Window closed, turning on your heater...
+
+    - id:            when_i_leave
+      alias:         "Turn things off when I leave"
+      trigger:
+          platform:  state
+          entity_id: device_tracker.homeassistant_df63b5d4cac144eba10c049bc1e5a10f
+          to:        not_home
+      action:
+        - service:   homeassistant.turn_off
+          entity_id: group.bedroom
+        - service: notify.notify
+          data:
+              title: Turning Everything Off
+              message: You have left home, turning off all the things...
+
+    - id: sunset_lights_location_trigger
+      alias: "Turn lights on when I get home and its dark (location trigger)"
+      trigger:
+          platform: state
+          entity_id: device_tracker.homeassistant_df63b5d4cac144eba10c049bc1e5a10f
+          to:        home
+      condition:
+          condition: sun
+          after: sunset
+          before_offset: "-1:30:00"
+      action:
+        - service: light.turn_on
+          entity_id:
+             - light.bedroom_light_1
+             - light.bedroom_light_2
+          data:
+            brightness: 130
+        - service: notify.notify
+          data:
+              title: Turning on Lights
+              message: Welcome home, turning on your lights...
+
+    - id: sunset_lights_sun_trigger
+      alias: "Turn lights on when I get home and its dark (location trigger)"
+      trigger:
+        - platform: sun
+          # Possible values: sunset, sunrise
+          event: sunset
+          # Optional time offset. This example is 45 minutes.
+          offset: '-01:30:00'
+      condition:
+          condition: state
+          entity_id: device_tracker.homeassistant_df63b5d4cac144eba10c049bc1e5a10f
+          state:     home
+      action:
+        - service: light.turn_on
+          entity_id:
+             - light.bedroom_light_1
+             - light.bedroom_light_2
+          data:
+            brightness: 130
+        - service: notify.notify
+          data:
+              title: Turning on Lights
+              message: Its getting dark, turning on your lights...
+
+
+    - id: turn_heater_off_when_window_opens
+      alias: Turn heater off when the window opens
+      trigger:
+          platform: state
+          entity_id: binary_sensor.window
+          to: 'on'
+      action:
+        - service:   homeassistant.turn_off
+          entity_id: switch.heater
+        - service: notify.notify
+          data:
+              title: Turning off Heater
+              message: Window opened, turning off your heater...
